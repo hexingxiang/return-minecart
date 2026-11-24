@@ -12,7 +12,20 @@
   const cardIcon = {long:'rail',coil:'copper',lens:'crystal'};
   const oreName = {copper:'铜矿',crystal:'蓝晶'};
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let soundOn = false;
+  let soundOn = true;
+  try { soundOn=localStorage.getItem('minecart-sound')!=='off'; } catch {}
+  function unlockSound(){
+    if(!soundOn)return;
+    try{
+      const AudioEngine=window.AudioContext || window.webkitAudioContext;
+      if(!AudioEngine)return;
+      if(!soundContext)soundContext=new AudioEngine();
+      if(soundContext.state==='suspended')soundContext.resume().catch(()=>{});
+    }catch{}
+  }
+  document.addEventListener('pointerdown',unlockSound,{capture:true,passive:true});
+  document.addEventListener('keydown',unlockSound,true);
+  document.addEventListener('click',unlockSound,true);
   let soundContext;
   let animation = null;
   let lastFrame = 0;
@@ -58,12 +71,12 @@
     c.putImageData(image,0,0);
   }
 
-  function tone(freq,seconds=0.07,type='triangle',level=0.035){
-    if(!soundOn || !soundContext) return;
+  function tone(freq,seconds=0.09,type='triangle',level=0.085,delay=0){
+    if(!soundOn || !soundContext || soundContext.state!=='running') return;
     try{
       const osc=soundContext.createOscillator(),gain=soundContext.createGain();
       osc.type=type; osc.frequency.value=freq;
-      const now=soundContext.currentTime;
+      const now=soundContext.currentTime+delay;
       gain.gain.setValueAtTime(0,now); gain.gain.linearRampToValueAtTime(level,now+0.008);
       gain.gain.exponentialRampToValueAtTime(0.001,now+seconds);
       osc.connect(gain); gain.connect(soundContext.destination);
@@ -71,6 +84,8 @@
     }catch{}
   }
 
+  function chord(notes){notes.forEach((f,i)=>tone(f,.18,'triangle',.07,i*.085));}
+  function impact(canvas){if(!reducedMotion && canvas.animate)canvas.animate([{filter:'brightness(1.20)',transform:'translateY(1px)'},{filter:'brightness(1)',transform:'translateY(0)'}],{duration:210,easing:'ease-out'});}
   const same=(a,b)=>a.x===b.x && a.y===b.y;
   const key=p=>p.x+','+p.y;
   function makeOreFeedback(controller,reduced){
@@ -261,7 +276,7 @@
     const removed=game.state.path.length<previousLength;
     if(removed)feedback.clear();
     const reinforced=!removed && game.trackCost(x,y)===2;
-    tone(removed?180:reinforced?135:270+(game.state.path.length%6)*24);
+    tone(removed?180:reinforced?135:270+(game.state.path.length%6)*24,.075,'square',.045);if(!removed)tone(820,.035,'triangle',.035,.025);
     refresh(reinforced?'碎岩已加固，耗用 2 节轨道。':'',removed?null:previous);
   }
 
@@ -283,7 +298,7 @@
     feedback.clear();
     const response=game.dispatch();
     if(!response.ok){warn(response.reason);return;}
-    tone(190,0.14,'triangle',0.05);
+    chord([125,185,247]);impact(board);
     animation={started:performance.now(),result:response.result,interval:reducedMotion?70:205};
     drawnCell=-1;exitAnimation=false;refresh();
   }
@@ -316,11 +331,11 @@
         drawnCell=n;const counts={copper:0,crystal:0};
         v.collected.forEach(o=>counts[o.type]+=o.amount);
         drawOrder(game.state,counts);
-        if(current.ores.length)tone(330+([0,2,4,7,9,12][(v.collected.length-1)%6])*27,0.13);
+        if(current.ores.length){const f=440+([0,2,4,7,9,12][(v.collected.length-1)%6])*27;chord([f,f*1.5,f*2]);impact(board);}else tone(105,.045,'triangle',.025);
       }
       if(t>=steps.length+0.7 && !exitAnimation){
         exitAnimation=true;
-        queueMicrotask(()=>{animation=null;refresh();showResult();});
+        queueMicrotask(()=>{animation=null;refresh();chord(a.result.met?[392,523,659,784]:[330,247,165]);showResult();});
       }
     }
     feedback.apply(v,now);
@@ -426,7 +441,7 @@
     excavation.resolved=true;
     if(!r.ok || skipped){continueReturn();return;}
     const item=specimen(game.state.relic.id);
-    if(hit){tone(660,.17);cachedView.relicCollected=true;}
+    if(hit){chord([440,660,880]);cachedView.relicCollected=true;}
     else tone(145,.12);
     modalContent(hit?'发现'+item.name:'矿壳没有裂开',
       '<div class="dig-display">'+iconMarkup(hit?item.id:'relic')+'</div><p>'+
@@ -587,6 +602,8 @@
     const r=game.equip(b.dataset.equip || null);
     if(!r.ok){warn(r.reason);return;}tone(420);refresh();
   };
+  q('#audio span').textContent=soundOn?'音效开':'音效关';
+  q('#audio').setAttribute('aria-pressed',String(soundOn));
   q('#audio').onclick=()=>{
     try{
       const AudioEngine=window.AudioContext || window.webkitAudioContext;
@@ -594,6 +611,8 @@
       if(!soundContext)soundContext=new AudioEngine();
       if(soundContext.state==='suspended')soundContext.resume().catch(()=>{});
       soundOn=!soundOn;
+      try{localStorage.setItem('minecart-sound',soundOn?'on':'off');}catch{}
+      if(soundOn)unlockSound();
       q('#audio span').textContent=soundOn?'音效开':'音效关';
       q('#audio').setAttribute('aria-pressed',String(soundOn));tone(460,.09);
     }catch{warn('当前浏览器无法启用音效。');}

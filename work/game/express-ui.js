@@ -287,7 +287,7 @@
     if(dialog.open)dialog.close();
     feedback.clear();
     animation={start:performance.now(),steps:response.result.steps,frame:-1};
-    ui.tone(185,.13);
+    ui.tone(125,.13,'triangle',.08);ui.tone(247,.16,'triangle',.07,.10);
     refresh(response.result.timeout?'发车铃响，按当前线路交货。':'矿车正在沿原路收矿。');
   }
 
@@ -298,7 +298,7 @@
       const steps=animation.steps;
       const t=Math.max(0,(now-animation.start)/(reduced?45:140));
       const n=ui.returnFrame(v,steps,t);
-      if(n!==animation.frame && steps[n].ores.length)ui.tone(420+24*n,.08);
+      if(n!==animation.frame){if(steps[n].ores.length){ui.tone(420+24*n,.13);ui.tone(840+48*n,.15,'triangle',.055,.075);if(!reduced && board.animate)board.animate([{filter:'brightness(1.2)'},{filter:'brightness(1)'}],{duration:210});}else ui.tone(105,.04,'triangle',.025);}
       animation.frame=n;
       if(t>=steps.length+.4){
         animation=null;
@@ -333,7 +333,7 @@
     if(action.expired){beginReturn(action);return;}
     if(action.ok){
       if(s().path.length<length)feedback.clear();
-      ui.tone(265+14*s().path.length);
+      ui.tone(265+14*s().path.length,.075,'square',.045);
     }
     refresh(action.ok?'':action.reason,action.ok && s().path.length>length?previous:null);
   }
