@@ -1,0 +1,12 @@
+<main id="express-view" class="layout fast-layout" hidden aria-label="三站快运">
+<section class="board-card" aria-label="快运矿区">
+<div class="topline fast-top"><div class="fast-station"><span id="fast-stage"></span><b id="fast-name"></b></div><div class="rail-count"><canvas class="icon" data-icon="rail" aria-hidden="true"></canvas>余轨 <b id="fast-rails"></b></div></div>
+<div class="fast-clock"><span id="fast-time-label">发车铃</span><b id="fast-time"></b><div class="clock-track"><i id="fast-time-bar"></i></div></div>
+<div class="canvas-shell"><canvas id="fast-board" width="320" height="280" tabindex="0" aria-label="三站快运地图，方向键铺轨，退格撤轨，空格发车"></canvas></div>
+<p class="hint" id="fast-note" role="status"></p><div class="controls"><button id="fast-undo" class="control">↶ 撤一格</button><button id="fast-go" class="control primary"></button></div></section>
+<section class="order fast-order"><div class="order-head"><h2>快运货单</h2><span id="fast-no" class="ticket-no"></span></div><div id="fast-ores" class="order-rows"></div><div class="fast-quote"><span>本车货价</span><b id="fast-quote"></b></div></section>
+<section class="tools fast-ledger"><nav class="pit-links" aria-label="货运设施"><button type="button" class="mobile-link" onclick="document.getElementById('fast-account-book').focus();document.getElementById('fast-account-book').scrollIntoView({block:'start'})"><canvas class="icon" data-icon="coin" aria-hidden="true"></canvas>货款账本</button><button class="quiet" id="fast-yard"><canvas class="icon" data-icon="cart" aria-hidden="true"></canvas>收藏车库</button><button class="quiet" id="fast-scout"><canvas class="icon" data-icon="lamp" aria-hidden="true"></canvas>勘探图</button></nav>
+<div class="section-head" id="fast-account-book" tabindex="-1"><h2>货款账本</h2></div>
+<div class="fast-accounts"><div class="held"><span>随车货款</span><strong id="fast-pot">0</strong></div><div><span>已落袋</span><strong id="fast-coins">0</strong></div></div>
+<div class="fast-record"><span>单趟最高</span><span id="fast-best"></span></div>
+<div id="fast-bonus" class="fast-bonus"></div><p class="desc" id="fast-save"></p></section></main>

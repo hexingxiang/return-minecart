@@ -1,0 +1,12 @@
+const createHost=require('./lib/host');
+const {makePlatform,touches}=require('./lib/platform');
+const screen=wx.createCanvas();
+const runtime=createHost(makePlatform(wx,screen,'game'));
+wx.onTouchStart(e=>touches(runtime,'start',e));
+wx.onTouchMove(e=>touches(runtime,'move',e));
+wx.onTouchEnd(e=>touches(runtime,'end',e));
+wx.onTouchCancel(e=>touches(runtime,'cancel',e));
+wx.onHide(()=>runtime.hide());
+wx.onShow(()=>runtime.show());
+wx.onWindowResize?.(()=>runtime.resize());
+runtime.show();
